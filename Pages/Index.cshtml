@@ -1,0 +1,71 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+<div class="container vstack gap-3">
+    <form class="row g-3 gy-4">
+        <div class="col-3">
+            <select class=" form-select" asp-for="ClothingCategory" asp-items="Model.Categories">
+                <option selected value=""> Choose Clothing Type </option>
+            </select>
+        </div>
+        <div class="col-2">
+            <select class="form-select" asp-for="Color" asp-items="Model.Colors">
+                <option selected value=""> Choose Color </option>
+            </select>
+        </div>
+        <div class="col-3">
+            <select class="col-2 form-select" asp-for="Style" asp-items="Model.Styles">
+                <option selected value=""> Choose Style </option>
+            </select>
+        </div>
+        <div class="col-3">
+            <select class="form-select" asp-for="SelectedVillager">
+                <option selected value=""> Choose Villager </option>
+                @foreach (Villager villager in Model.VillagerList)
+                {
+                    <option value="@villager.Name">@villager.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-1">
+            <input class="btn btn-pink" type="submit" value="Filter" />
+        </div>
+    </form>
+    <div class="row gy-4">
+        @foreach(Clothing clothing in @Model.ClothingList){
+            @foreach(Variation variation in clothing.Variations){
+            <div class="col-md-3 col-sm-4 col-xs-6">
+                <div class="card">
+                    <img src="@variation.ImageUrl" class="card-img-top">
+                    <div class="card-body">
+                        <h6 class="card-title"> @variation.VariationName @clothing.Name </h6>
+                        @{
+                            int rating = 1;
+
+                            foreach(string color in variation.Colors){
+                                if(Model.CompareColors.Contains(color))
+                                rating++;
+                            }
+                            foreach(string style in clothing.Styles){
+                                if(Model.CompareStyles.Contains(style))
+                                    rating++;
+                            }
+
+                        }
+                        <div>
+                            @for(int i = 1; i <= 5; i++){
+                                int opacity = i <= rating ? 100 : 25;
+                                <i class="bi bi-heart-fill opacity-@opacity" style="color: hotpink;"></i>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+        }
+    </div>
+</div>
+
