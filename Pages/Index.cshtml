@@ -6,17 +6,17 @@
 <div class="container vstack gap-3">
     <form class="row g-3 gy-4">
         <div class="col-3">
-            <select class=" form-select" asp-for="ClothingCategory" asp-items="Model.Categories">
+            <select class=" form-select" asp-for="ClothingCategory" asp-items="SelectListItemsUtility.Categories">
                 <option selected value=""> Choose Clothing Type </option>
             </select>
         </div>
         <div class="col-2">
-            <select class="form-select" asp-for="Color" asp-items="Model.Colors">
+            <select class="form-select" asp-for="Color" asp-items="SelectListItemsUtility.Colors">
                 <option selected value=""> Choose Color </option>
             </select>
         </div>
         <div class="col-3">
-            <select class="col-2 form-select" asp-for="Style" asp-items="Model.Styles">
+            <select class="col-2 form-select" asp-for="Style" asp-items="SelectListItemsUtility.Styles">
                 <option selected value=""> Choose Style </option>
             </select>
         </div>
