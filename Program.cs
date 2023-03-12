@@ -8,6 +8,8 @@ builder.Services.AddHttpClient("Nookipedia", httpClient => {
     httpClient.DefaultRequestHeaders.Add("X-API-KEY", nookiApiKey);
     httpClient.DefaultRequestHeaders.Add("Accept-Version", "1.5.0");
 });
+builder.Services.AddMemoryCache();
+
 var app = builder.Build();
 
 

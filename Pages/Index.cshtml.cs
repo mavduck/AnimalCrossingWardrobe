@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
 namespace AnimalCrossingWardrobe.Pages;
@@ -8,8 +9,10 @@ namespace AnimalCrossingWardrobe.Pages;
 public class IndexModel : PageModel
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private IMemoryCache _cache;
 
-    public Clothing[] ClothingList {get; set;} = new Clothing[0];
+    string cacheKey = "123";
+    public ClothingItem[] ClothingList {get; set;} = new ClothingItem[0];
     public Villager[] VillagerList {get; set;} = new Villager[0];
     public string[] CompareStyles = new string[0];
     public string[] CompareColors = new string[0];
@@ -24,11 +27,13 @@ public class IndexModel : PageModel
     public string? Style {get; set;}
 
     [BindProperty(SupportsGet = true)]
-    public string? SelectedVillager {get; set;}
+    public string? SelectedVillagerName {get; set;}
 
-    public IndexModel(IHttpClientFactory httpClientFactory){ 
+    public IndexModel(IHttpClientFactory httpClientFactory, IMemoryCache cache){ 
 
         _httpClientFactory = httpClientFactory;
+        _cache = cache;
+
     }
 
     public async Task OnGet()
@@ -52,29 +57,30 @@ public class IndexModel : PageModel
         if (httpResponseMessage.IsSuccessStatusCode)
         {
             Stream contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-            IEnumerable<Clothing>? clothing = await JsonSerializer.DeserializeAsync<IEnumerable<Clothing>>(contentStream);
-            ClothingList = clothing?.Take(20).ToArray() ?? new Clothing[0];
+            IEnumerable<Clothing>? Clothing = await JsonSerializer.DeserializeAsync<IEnumerable<Clothing>>(contentStream);
+            IEnumerable<ClothingItem> Variations = from item in Clothing
+                                        from variation in item.Variations
+                                        select new ClothingItem(item.Name, variation.VariationName, variation.Colors, item.Styles, variation.ImageUrl);
+            ClothingList = Variations.ToArray();                     
         }
 
-        String getVillagers = "/villagers?game=nh";
-        httpResponseMessage = await httpClient.GetAsync(getVillagers);
-        if (httpResponseMessage.IsSuccessStatusCode)
-        {
-            Stream contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-            IEnumerable<Villager>? villagers = await JsonSerializer.DeserializeAsync<IEnumerable<Villager>>(contentStream);
-            VillagerList = villagers?.ToArray() ?? new Villager[0];
-        }
-
-        if(!string.IsNullOrEmpty(SelectedVillager)){
-            String getVillager = "/villagers?game=nh&nhdetails=true&name=" + SelectedVillager;
-            httpResponseMessage = await httpClient.GetAsync(getVillager);
+        if(!_cache.TryGetValue(cacheKey, out IEnumerable<Villager>? Villagers)){
+            String getVillagers = "/villagers?game=nh&nhdetails=true";
+            httpResponseMessage = await httpClient.GetAsync(getVillagers);
             if (httpResponseMessage.IsSuccessStatusCode)
             {
                 Stream contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-                IEnumerable<Villager>? villager = await JsonSerializer.DeserializeAsync<IEnumerable<Villager>>(contentStream);
-                CompareColors = villager?.First().Details.Colors ?? new string[0];
-                CompareStyles = villager?.First().Details.Styles ?? new string[0];
+                Villagers = await JsonSerializer.DeserializeAsync<IEnumerable<Villager>>(contentStream);
+                _cache.Set(cacheKey, Villagers);
             }
+        }
+
+        VillagerList = Villagers?.ToArray() ?? new Villager[0];
+
+        if(!string.IsNullOrEmpty(SelectedVillagerName)){
+            Villager? SelectedVillager = Array.Find(VillagerList, v=> v.Name == SelectedVillagerName);
+                CompareColors = SelectedVillager?.Details.Colors ?? new string[0];
+                CompareStyles = SelectedVillager?.Details.Styles ?? new string[0];
         }
 
     }
