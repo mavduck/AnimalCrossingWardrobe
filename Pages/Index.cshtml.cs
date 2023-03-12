@@ -15,16 +15,22 @@ public class IndexModel : PageModel
     public string[] CompareColors = new string[0];
 
     [BindProperty(SupportsGet = true)]
-    public string? ClothingCategory {get; set;}
+    public string ClothingCategory {get; set;} = "";
 
     [BindProperty(SupportsGet = true)]
-    public string? Color {get; set;}
+    public string Color {get; set;} = "";
 
     [BindProperty(SupportsGet = true)]
-    public string? Style {get; set;}
+    public string Style {get; set;} = "";
 
     [BindProperty(SupportsGet = true)]
-    public string? SelectedVillagerName {get; set;}
+    public string SelectedVillagerName {get; set;} = "";
+
+    [BindProperty(SupportsGet = true)]
+    public int PageIndex {get; set;} = 1;
+    public int PageSize = 50;
+    public int ClothingCount {get; set;}
+    public int TotalPages {get; set;}
 
     public IndexModel(IMemoryCache cache, INookiService nookiService){ 
 
@@ -36,6 +42,9 @@ public class IndexModel : PageModel
     public async Task OnGet()
     {
         ClothingList = await _nookiService.GetClothing(ClothingCategory, Color, Style);
+        ClothingCount = ClothingList.Length;
+        TotalPages = (int) Math.Ceiling((Decimal)ClothingCount/(Decimal)PageSize);
+        ClothingList = ClothingList.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToArray();
 
         if(!_cache.TryGetValue(cacheKey, out Villager[] Villagers)){
             Villagers = await _nookiService.GetVillagers();

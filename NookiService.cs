@@ -37,7 +37,7 @@ public class NookiService : INookiService {
             IEnumerable<ClothingItem> Variations = from item in Clothing
                                         from variation in item.Variations
                                         select new ClothingItem(item.Name, variation.VariationName, variation.Colors, item.Styles, variation.ImageUrl);
-            return Variations.Take(50).ToArray();                     
+            return Variations.ToArray();                     
         }
 
         return new ClothingItem[0];

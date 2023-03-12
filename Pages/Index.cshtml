@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Home page";
 }
+
 <div class="container vstack gap-3">
     <form class="row g-3 gy-4">
         <div class="col-3">
@@ -64,4 +65,75 @@
             </div>
         }
     </div>
+    @{
+        var disabledPrev = Model.PageIndex > 1 ? "" : "disabled";
+        var disabledNext = Model.PageIndex < Model.TotalPages ? "" : "disabled";
+        
+        var routeFilters = new Dictionary<string, string>
+            {
+                { "SelectedVillagerName", @Model.SelectedVillagerName },
+                { "ClothingCategory", @Model.ClothingCategory },
+                { "Color", @Model.Color },
+                { "Style", @Model.Style },
+            };
+    }
+    
+    <div class="btn-group">
+        <a class="btn btn-pink @disabledPrev" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex="@(Model.PageIndex - 1)">Previous</a>
+        @foreach(String pageIndex in @PaginationIndexes()){
+            @if(pageIndex == "..."){
+                <a class="btn btn-pink disabled" >@pageIndex</a>
+            }
+            else {
+                <a class="btn btn-pink @(Model.PageIndex.ToString().Equals(@pageIndex) ? "active" : "")" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex=@pageIndex>@pageIndex</a>
+            }
+        }
+        <a class="btn btn-pink @disabledNext" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex="@(Model.PageIndex + 1)">Next</a>
+
+
+    </div>
+
 </div>
+
+@functions{
+    public List<String> PaginationIndexes(){
+        List<String> pages = new List<String>();
+
+        int window = 4;
+        int size = window + 5;
+
+        if(Model.TotalPages <= size){
+            for(int i = 1; i <= Model.TotalPages; i++)
+                pages.Add(i.ToString());
+            return pages;
+        }
+
+        int start = Model.PageIndex - window;
+        int end = Model.PageIndex + window;
+        int startLeftover = 3 - start;
+        int endLeftover = end - Model.TotalPages + 2;
+
+        pages.Add("1");
+    
+        if(startLeftover >= 0){
+            for(int i = 2; i <= end + startLeftover; i++){
+                pages.Add(i.ToString());
+            }
+            pages.Add("...");
+            pages.Add(Model.TotalPages.ToString());
+        }
+        else if(endLeftover >= 0){
+            pages.Add("...");
+            for(int i = start - endLeftover; i <= Model.TotalPages; i++)
+                pages.Add(i.ToString());
+        }
+        else {
+            pages.Add("...");
+            for(int i = start; i <= end; i++)
+                pages.Add(i.ToString());
+            pages.Add("...");
+            pages.Add(Model.TotalPages.ToString());
+        }
+        return pages;;
+    }
+}

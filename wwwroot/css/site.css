@@ -22,3 +22,9 @@ body {
   background-color: #ff99ff;
   border-color: #ffccff;
 }
+
+.btn-pink.active {
+  color: #ff99ff;
+  background-color: white;
+  outline: #ff99ff;
+}
