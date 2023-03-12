@@ -34,21 +34,20 @@
         </div>
     </form>
     <div class="row gy-4">
-        @foreach(Clothing clothing in @Model.ClothingList){
-            @foreach(Variation variation in clothing.Variations){
+        @foreach(ClothingItem Item in @Model.ClothingList){
             <div class="col-md-3 col-sm-4 col-xs-6">
                 <div class="card">
-                    <img src="@variation.ImageUrl" class="card-img-top">
+                    <img src="@Item.ImageUrl" class="card-img-top">
                     <div class="card-body">
-                        <h6 class="card-title"> @variation.VariationName @clothing.Name </h6>
+                        <h6 class="card-title"> @Item.VariationName @Item.ClothingName </h6>
                         @{
                             int rating = 1;
 
-                            foreach(string color in variation.Colors){
+                            foreach(string color in Item.Colors){
                                 if(Model.CompareColors.Contains(color))
                                 rating++;
                             }
-                            foreach(string style in clothing.Styles){
+                            foreach(string style in Item.Styles){
                                 if(Model.CompareStyles.Contains(style))
                                     rating++;
                             }

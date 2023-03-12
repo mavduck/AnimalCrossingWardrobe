@@ -12,9 +12,7 @@ public class IndexModel : PageModel
     private IMemoryCache _cache;
 
     string cacheKey = "123";
-    string clothingCacheKey = "456";
-
-    public Clothing[] ClothingList {get; set;} = new Clothing[0];
+    public ClothingItem[] ClothingList {get; set;} = new ClothingItem[0];
     public Villager[] VillagerList {get; set;} = new Villager[0];
     public string[] CompareStyles = new string[0];
     public string[] CompareColors = new string[0];
@@ -59,8 +57,11 @@ public class IndexModel : PageModel
         if (httpResponseMessage.IsSuccessStatusCode)
         {
             Stream contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-            IEnumerable<Clothing>? clothing = await JsonSerializer.DeserializeAsync<IEnumerable<Clothing>>(contentStream);
-            ClothingList = clothing?.Take(100).ToArray() ?? new Clothing[0];
+            IEnumerable<Clothing>? Clothing = await JsonSerializer.DeserializeAsync<IEnumerable<Clothing>>(contentStream);
+            IEnumerable<ClothingItem> Variations = from item in Clothing
+                                        from variation in item.Variations
+                                        select new ClothingItem(item.Name, variation.VariationName, variation.Colors, item.Styles, variation.ImageUrl);
+            ClothingList = Variations.ToArray();                     
         }
 
         if(!_cache.TryGetValue(cacheKey, out IEnumerable<Villager>? Villagers)){
