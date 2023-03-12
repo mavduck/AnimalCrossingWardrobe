@@ -1,16 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Caching.Memory;
-using System.Text.Json;
 
 namespace AnimalCrossingWardrobe.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private INookiService _nookiService;
     private IMemoryCache _cache;
-
     string cacheKey = "123";
     public ClothingItem[] ClothingList {get; set;} = new ClothingItem[0];
     public Villager[] VillagerList {get; set;} = new Villager[0];
@@ -29,60 +26,29 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string? SelectedVillagerName {get; set;}
 
-    public IndexModel(IHttpClientFactory httpClientFactory, IMemoryCache cache){ 
+    public IndexModel(IMemoryCache cache, INookiService nookiService){ 
 
-        _httpClientFactory = httpClientFactory;
         _cache = cache;
+        _nookiService = nookiService;
 
     }
 
     public async Task OnGet()
     {
-        Dictionary<string,string?> queries = new Dictionary<string, string?>();
+        ClothingList = await _nookiService.GetClothing(ClothingCategory, Color, Style);
 
-        if(!string.IsNullOrEmpty(ClothingCategory)){
-            queries.Add("category", ClothingCategory);
+        if(!_cache.TryGetValue(cacheKey, out Villager[] Villagers)){
+            Villagers = await _nookiService.GetVillagers();
+            _cache.Set(cacheKey, Villagers);
         }
-        if(!string.IsNullOrEmpty(Color)){
-            queries.Add("color", Color);
-        }
-        if(!string.IsNullOrEmpty(Style)){
-            queries.Add("style",Style);
-        }
-
-        String getClothing = QueryHelpers.AddQueryString("/nh/clothing", queries);
-
-        HttpClient httpClient = _httpClientFactory.CreateClient("Nookipedia");
-        HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(getClothing);
-        if (httpResponseMessage.IsSuccessStatusCode)
-        {
-            Stream contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-            IEnumerable<Clothing>? Clothing = await JsonSerializer.DeserializeAsync<IEnumerable<Clothing>>(contentStream);
-            IEnumerable<ClothingItem> Variations = from item in Clothing
-                                        from variation in item.Variations
-                                        select new ClothingItem(item.Name, variation.VariationName, variation.Colors, item.Styles, variation.ImageUrl);
-            ClothingList = Variations.ToArray();                     
-        }
-
-        if(!_cache.TryGetValue(cacheKey, out IEnumerable<Villager>? Villagers)){
-            String getVillagers = "/villagers?game=nh&nhdetails=true";
-            httpResponseMessage = await httpClient.GetAsync(getVillagers);
-            if (httpResponseMessage.IsSuccessStatusCode)
-            {
-                Stream contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-                Villagers = await JsonSerializer.DeserializeAsync<IEnumerable<Villager>>(contentStream);
-                _cache.Set(cacheKey, Villagers);
-            }
-        }
-
-        VillagerList = Villagers?.ToArray() ?? new Villager[0];
+        
+        VillagerList = Villagers;
 
         if(!string.IsNullOrEmpty(SelectedVillagerName)){
             Villager? SelectedVillager = Array.Find(VillagerList, v=> v.Name == SelectedVillagerName);
                 CompareColors = SelectedVillager?.Details.Colors ?? new string[0];
                 CompareStyles = SelectedVillager?.Details.Styles ?? new string[0];
         }
-
     }
 }
 

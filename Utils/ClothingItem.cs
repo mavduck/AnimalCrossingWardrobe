@@ -1,5 +1,3 @@
-
-
 public class ClothingItem
 {
     public String ClothingName;
