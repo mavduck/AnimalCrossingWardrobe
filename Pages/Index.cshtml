@@ -3,26 +3,38 @@
 @{
     ViewData["Title"] = "Home page";
 }
+@{
+    var disabledPrev = Model.PageIndex > 1 ? "" : "disabled";
+    var disabledNext = Model.PageIndex < Model.TotalPages ? "" : "disabled";
+    
+    var routeFilters = new Dictionary<string, string>
+        {
+            { "SelectedVillagerName", @Model.SelectedVillagerName },
+            { "ClothingCategory", @Model.ClothingCategory },
+            { "Color", @Model.Color },
+            { "Style", @Model.Style },
+        };
+}
 
 <div class="container vstack gap-3">
-    <form class="row g-3 gy-4">
-        <div class="col-3">
-            <select class=" form-select" asp-for="ClothingCategory" asp-items="SelectListItemsUtility.Categories">
+    <form class="d-flex">
+        <div class="p-2 flex-fill">
+            <select class=" form-select form-select-pink" asp-for="ClothingCategory" asp-items="SelectListItemsUtility.Categories">
                 <option selected value=""> Choose Clothing Type </option>
             </select>
         </div>
-        <div class="col-2">
-            <select class="form-select" asp-for="Color" asp-items="SelectListItemsUtility.Colors">
+        <div class="p-2 flex-fill">
+            <select class="form-select form-select-pink" asp-for="Color" asp-items="SelectListItemsUtility.Colors">
                 <option selected value=""> Choose Color </option>
             </select>
         </div>
-        <div class="col-3">
-            <select class="col-2 form-select" asp-for="Style" asp-items="SelectListItemsUtility.Styles">
+        <div class="p-2 flex-fill">
+            <select class="col-2 form-select form-select-pink" asp-for="Style" asp-items="SelectListItemsUtility.Styles">
                 <option selected value=""> Choose Style </option>
             </select>
         </div>
-        <div class="col-3">
-            <select class="form-select" asp-for="SelectedVillagerName">
+        <div class="p-2 flex-fill">
+            <select class="form-select form-select-pink" asp-for="SelectedVillagerName">
                 <option selected value=""> Choose Villager </option>
                 @foreach (Villager villager in Model.VillagerList)
                 {
@@ -30,18 +42,45 @@
                 }
             </select>
         </div>
-        <div class="col-1">
+        <div class="p-2 flex-fill">
             <input class="btn btn-pink" type="submit" value="Filter" />
         </div>
     </form>
+    <hr/>
+    <div class="d-flex justify-content-between">
+        <div class="fs-small text-muted">Page @Model.PageIndex of @Model.TotalPages</div>
+        <div class="btn-group">
+            <a class="btn btn-pink btn-sm @disabledPrev" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex="@(Model.PageIndex - 1)">
+                <i class="bi bi-arrow-left-short"></i>
+            </a>
+            <a class="btn btn-pink btn-sm @disabledNext" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex="@(Model.PageIndex + 1)">
+               <i class="bi bi-arrow-right-short"></i>
+            </a>
+        </div>
+
+    </div>
     <div class="row gy-4">
+        @{
+            int index = 0;
+        }
         @foreach(ClothingItem Item in @Model.ClothingList){
+            index++;
             <div class="col-md-3 col-sm-4 col-xs-6">
-                <div class="card">
+                <div class="card card-pink">
                     <img src="@Item.ImageUrl" class="card-img-top">
                     <div class="card-body">
-                        <h6 class="card-title"> @Item.VariationName @Item.ClothingName </h6>
-                        @{
+                        <div class="card-title card-title-pink w-100 text-center text-capitalize"> @Item.VariationName @Item.ClothingName </div>
+                        @if(String.IsNullOrEmpty(Model.SelectedVillagerName)){
+                            <div class="d-flex align-items-center my-2">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-heart-fill opacity-25 icon-pink"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3 text-muted fs-small">
+                                    Select villager to see compatibility rating
+                                </div>
+                            </div>
+                        }
+                        else{
                             int rating = 1;
 
                             foreach(string color in Item.Colors){
@@ -53,30 +92,34 @@
                                     rating++;
                             }
 
+                            <div class="my-2 d-flex justify-content-center gap-1">
+                                @for(int i = 1; i <= 5; i++){
+                                    int opacity = i <= rating ? 100 : 25;
+                                    <i class="bi bi-heart-fill icon-pink opacity-@opacity"></i>
+                                }
+                            </div>
                         }
-                        <div>
-                            @for(int i = 1; i <= 5; i++){
-                                int opacity = i <= rating ? 100 : 25;
-                                <i class="bi bi-heart-fill opacity-@opacity" style="color: hotpink;"></i>
-                            }
+                        <div class="accordion" id="accord@(index)">
+                              <div class="accordion-item">
+                                    <div class="accordion-header" id="heading@(index)">
+                                        <button class="accordion-button collapsed fs-small" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(index)">
+                                            Details
+                                        </button>
+                                    </div>
+                                    <div id="collapse@(index)" class="accordion-collapse collapse" data-bs-parent="#accord@(index)">
+                                        <div class="accordion-body p-2">
+                                            <div class="fs-small text-muted"><strong>Styles:</strong> @(String.Join(", ",@Item.Styles))</div>
+                                            <div class="fs-small text-muted"><strong>Colors:</strong> @(String.Join(", ", @Item.Colors))</div>
+                                            
+                                        </div>
+                                    </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         }
     </div>
-    @{
-        var disabledPrev = Model.PageIndex > 1 ? "" : "disabled";
-        var disabledNext = Model.PageIndex < Model.TotalPages ? "" : "disabled";
-        
-        var routeFilters = new Dictionary<string, string>
-            {
-                { "SelectedVillagerName", @Model.SelectedVillagerName },
-                { "ClothingCategory", @Model.ClothingCategory },
-                { "Color", @Model.Color },
-                { "Style", @Model.Style },
-            };
-    }
     
     <div class="btn-group">
         <a class="btn btn-pink @disabledPrev" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex="@(Model.PageIndex - 1)">Previous</a>
@@ -89,8 +132,6 @@
             }
         }
         <a class="btn btn-pink @disabledNext" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex="@(Model.PageIndex + 1)">Next</a>
-
-
     </div>
 
 </div>

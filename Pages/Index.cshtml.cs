@@ -28,7 +28,7 @@ public class IndexModel : PageModel
 
     [BindProperty(SupportsGet = true)]
     public int PageIndex {get; set;} = 1;
-    public int PageSize = 50;
+    public int PageSize = 48;
     public int ClothingCount {get; set;}
     public int TotalPages {get; set;}
 

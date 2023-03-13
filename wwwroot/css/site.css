@@ -17,6 +17,16 @@ body {
   margin-bottom: 60px;
 }
 
+hr {
+  color: #ff99ff;
+  margin: .5rem;
+}
+
+.navbar-pink {
+  background-color: #ff99ff;
+  border-color: #ffccff;
+}
+
 .btn-pink {
   color: #fff;
   background-color: #ff99ff;
@@ -27,4 +37,47 @@ body {
   color: #ff99ff;
   background-color: white;
   outline: #ff99ff;
+}
+
+.btn-pink:hover {
+  color: #ff007f;
+}
+
+.icon-pink {
+  color: #ff007f;
+}
+
+.card-pink {
+  outline: 1px solid #ff99ff;
+}
+
+.card-title-pink {
+  background-color: #ff99ff;
+  border-radius: 20px;
+  color: white;
+}
+
+.form-select-pink {
+  color: #ff66b2;
+  border: 1px solid #ff99ff
+}
+
+.fs-small {
+  font-size: .7em;
+}
+
+.accordion-button {
+  padding: 0px 10px;
+}
+
+.accordion-button:focus{
+  z-index: 3;
+  border-color: #ff99ff;
+  box-shadow: 0 0 0 0.25em #ffccff;
+
+}
+
+.accordion-button:not(.collapsed) {
+  color: black;
+  background-color: white;
 }
