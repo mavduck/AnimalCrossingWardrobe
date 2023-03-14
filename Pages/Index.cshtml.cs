@@ -9,14 +9,12 @@ public class IndexModel : PageModel
     private INookiService _nookiService;
     private IMemoryCache _cache;
     string cacheKey = "123";
-    public ClothingItem[] ClothingList {get; set;} = new ClothingItem[0];
-    public Villager[] VillagerList {get; set;} = new Villager[0];
-    public string[] CompareStyles = new string[0];
-    public string[] CompareColors = new string[0];
-    public string SelectedVillagerIconUrl = "";
+    public List<ClothingItem> ClothingList {get; set;} = new List<ClothingItem>();
+    public List<Villager> VillagerList {get; set;} = new List<Villager>();
+    public Villager? SelectedVillager {get; set;}
 
     [BindProperty(SupportsGet = true)]
-    public string ClothingCategory {get; set;} = "";
+    public string ClothingType {get; set;} = "";
 
     [BindProperty(SupportsGet = true)]
     public string Color {get; set;} = "";
@@ -30,7 +28,6 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public int PageIndex {get; set;} = 1;
     public int PageSize = 48;
-    public int ClothingCount {get; set;}
     public int TotalPages {get; set;}
 
     public IndexModel(IMemoryCache cache, INookiService nookiService){ 
@@ -42,32 +39,36 @@ public class IndexModel : PageModel
 
     public async Task OnGet()
     {
-        ClothingList = await _nookiService.GetClothing(ClothingCategory, Color, Style);
-        ClothingCount = ClothingList.Length;
-        TotalPages = (int) Math.Ceiling((Decimal)ClothingCount/(Decimal)PageSize);
-        ClothingList = ClothingList.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToArray();
+        ClothingList = await _nookiService.GetClothing(ClothingType, Color, Style);
 
-        if(!_cache.TryGetValue(cacheKey, out Villager[] Villagers)){
+        if(ClothingList.Count > 0){
+            TotalPages = (int) Math.Ceiling((Decimal)ClothingList.Count/(Decimal)PageSize);
+
+            //If the PageIndex exceeds the TotalPages, keep user on the last page
+            //If the PageIndex is negative or zero, keep user on the first page
+            PageIndex = PageIndex > TotalPages ? TotalPages : PageIndex <= 0 ? 1 : PageIndex;
+
+            //If the remaining clothing items to view is less than page size, only get that amount
+            int NumClothingItemFromPageIndex = ClothingList.Count - ((PageIndex - 1) * PageSize);
+            PageSize = NumClothingItemFromPageIndex <= PageSize ? NumClothingItemFromPageIndex : PageSize;
+
+            ClothingList = ClothingList.GetRange((PageIndex - 1) * PageSize, PageSize);
+        }
+        else {
+            PageIndex = 1;
+            TotalPages = 1;
+        }
+
+        if(!_cache.TryGetValue(cacheKey, out List<Villager> Villagers)){
             Villagers = await _nookiService.GetVillagers();
             _cache.Set(cacheKey, Villagers);
         }
         
         VillagerList = Villagers;
 
-        if(!string.IsNullOrEmpty(SelectedVillagerName)){
-            Villager? SelectedVillager = Array.Find(VillagerList, v=> v.Name == SelectedVillagerName);
-            if(SelectedVillager == null){
-                SelectedVillagerName = "";
-                CompareColors = new string[0];
-                CompareStyles = new string[0];
-            }
-            else{
-                SelectedVillagerIconUrl = SelectedVillager.Details.IconUrl;
-                CompareColors = SelectedVillager.Details.Colors;
-                CompareStyles = SelectedVillager.Details.Styles;
-            }
-                
-        }
+        if(!String.IsNullOrEmpty(SelectedVillagerName)){
+            SelectedVillager = VillagerList.Find(v=> v.Name == SelectedVillagerName);  
+        }  
     }
 }
 
