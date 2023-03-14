@@ -62,6 +62,33 @@ hr {
   border: 1px solid #ff99ff
 }
 
+.form-select-pink.dropdown-toggle::after {
+  display: none;
+}
+
+.dropdown-menu-scroll {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.dropdown-menu-scroll li {
+  height: 10vh;
+}
+
+.villager-icon-fit {
+  height: 100%;
+}
+
+.villager-icon-sm  {
+  height: 1.4rem;
+}
+
+.dropdown-item.active {
+  color: #ff007f;
+  border: 1px solid #ff99ff;
+  background-color: #ffccff;
+}
+
 .fs-small {
   font-size: .7em;
 }
