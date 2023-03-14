@@ -13,6 +13,7 @@ public class IndexModel : PageModel
     public Villager[] VillagerList {get; set;} = new Villager[0];
     public string[] CompareStyles = new string[0];
     public string[] CompareColors = new string[0];
+    public string SelectedVillagerIconUrl = "";
 
     [BindProperty(SupportsGet = true)]
     public string ClothingCategory {get; set;} = "";
@@ -55,8 +56,17 @@ public class IndexModel : PageModel
 
         if(!string.IsNullOrEmpty(SelectedVillagerName)){
             Villager? SelectedVillager = Array.Find(VillagerList, v=> v.Name == SelectedVillagerName);
-                CompareColors = SelectedVillager?.Details.Colors ?? new string[0];
-                CompareStyles = SelectedVillager?.Details.Styles ?? new string[0];
+            if(SelectedVillager == null){
+                SelectedVillagerName = "";
+                CompareColors = new string[0];
+                CompareStyles = new string[0];
+            }
+            else{
+                SelectedVillagerIconUrl = SelectedVillager.Details.IconUrl;
+                CompareColors = SelectedVillager.Details.Colors;
+                CompareStyles = SelectedVillager.Details.Styles;
+            }
+                
         }
     }
 }

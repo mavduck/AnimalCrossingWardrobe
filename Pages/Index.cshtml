@@ -33,14 +33,37 @@
                 <option selected value=""> Choose Style </option>
             </select>
         </div>
+        <input type="hidden" id="selectedVillagerNameInput" asp-for="SelectedVillagerName" value="@Model.SelectedVillagerName">
         <div class="p-2 flex-fill">
-            <select class="form-select form-select-pink" asp-for="SelectedVillagerName">
-                <option selected value=""> Choose Villager </option>
-                @foreach (Villager villager in Model.VillagerList)
-                {
-                    <option value="@villager.Name">@villager.Name</option>
-                }
-            </select>
+            <div class="dropdown">
+                <button value="@Model.SelectedVillagerName" asp-for="SelectedVillagerName" class="dropdown-toggle form-select form-select-pink w-100" type="button" data-bs-toggle="dropdown">
+                    <div id="selectedVillagerDropdownCover">
+                        @if(String.IsNullOrEmpty(@Model.SelectedVillagerName)){
+                            @("Choose Villager");
+                        }
+                        else{
+                            <img class="villager-icon-sm" src="@Model.SelectedVillagerIconUrl" >
+                            @Model.SelectedVillagerName
+                        }
+                    </div>
+                </button>
+                <ul id="villagerDropdown" class="dropdown-menu dropdown-menu-scroll">
+                        <li class="dropdown-item">
+                            <input id="villagerDropdownSearch" onkeyup="villagerSearch()" type="text">
+                        </li>
+                        <li id="NoVillagerListItem" onclick="villagerSelect(this.id)" class="dropdown-item villagerListItem @(String.IsNullOrEmpty(Model.SelectedVillagerName) ? "active" : "")" data-value="">
+                            <img class="villager-icon-fit" src="https://dodo.ac/np/images/6/68/Tom_Nook_NH_Character_Icon.png">
+                            No Villager
+                        </li>
+                    @foreach (Villager villager in Model.VillagerList)
+                    {
+                        <li id="@(villager.Name+"ListItem")" onclick="villagerSelect(this.id)" class="dropdown-item villagerListItem @(Model.SelectedVillagerName == @villager.Name ? "active" : "")" data-value="@villager.Name">
+                            <img class="villager-icon-fit" src="@villager.Details.IconUrl" >
+                            @villager.Name
+                        </li>
+                    }
+                </ul>
+            </div>
         </div>
         <div class="p-2 flex-fill">
             <input class="btn btn-pink" type="submit" value="Filter" />
@@ -49,6 +72,14 @@
     <hr/>
     <div class="d-flex justify-content-between">
         <div class="fs-small text-muted">Page @Model.PageIndex of @Model.TotalPages</div>
+        @if(!String.IsNullOrEmpty(Model.SelectedVillagerName)){
+            <div class="fs-small text-muted" >
+                @Model.SelectedVillagerName's
+                <img class="villager-icon-sm" src="@Model.SelectedVillagerIconUrl" >
+                favorite styles are @(String.Join(" and ",@Model.CompareStyles)) 
+                and their favorite colors are @(String.Join(" and ",@Model.CompareColors)) 
+            </div>
+        }
         <div class="btn-group">
             <a class="btn btn-pink btn-sm @disabledPrev" asp-page="/Index" asp-all-route-data="@routeFilters" asp-route-PageIndex="@(Model.PageIndex - 1)">
                 <i class="bi bi-arrow-left-short"></i>
@@ -93,6 +124,7 @@
                             }
 
                             <div class="my-2 d-flex justify-content-center gap-1">
+                                <span><img class="villager-icon-sm" src="@Model.SelectedVillagerIconUrl" ></span>
                                 @for(int i = 1; i <= 5; i++){
                                     int opacity = i <= rating ? 100 : 25;
                                     <i class="bi bi-heart-fill icon-pink opacity-@opacity"></i>
@@ -140,9 +172,18 @@
     public List<String> PaginationIndexes(){
         List<String> pages = new List<String>();
 
-        int window = 4;
-        int size = window + 5;
+        //Consistently show the same number of page indexes
+        /*Follows template [1,...,{window},current,{window},...,Last] when the current page
+        doesn't overlap with the first or last, otherwise, keep that same number of page indexes
+        to be shown(including ...'s) by keeping track of "leftover" amount from window on either side
+        */
 
+        int window = 4;
+
+        //Size is based on the window and then adds 5 due to [1,...,current,...,Last]
+        int size = window * 2 + 5;
+
+        //If the number of pages is less than or equal to target size, return them all
         if(Model.TotalPages <= size){
             for(int i = 1; i <= Model.TotalPages; i++)
                 pages.Add(i.ToString());
@@ -151,11 +192,24 @@
 
         int start = Model.PageIndex - window;
         int end = Model.PageIndex + window;
+
+        //leftover from start window, find the overlap from [1,...,itself]
         int startLeftover = 3 - start;
+        //leftover from end window, find the overlap from [...,last]
         int endLeftover = end - Model.TotalPages + 2;
 
         pages.Add("1");
-    
+
+        /*
+        Since we accounted for page amount where it is less than size which is the only case where
+        startLeftover or endLeftover could be positive or 0 and the opposing side wouldnt include ...,
+        we only need to account for three cases where atleast one side will include ...
+            if startLeftover is positive or 0 we know that the end will have ... and we know 
+        that we will need to change the end index to account for the start leftover amount 
+            if endLeftover is positive or 0 we know that the beginning will have ... and the start index
+        will need to account for the end leftover amount
+            neither is positive therefore our window holds and both sides need ...
+        */
         if(startLeftover >= 0){
             for(int i = 2; i <= end + startLeftover; i++){
                 pages.Add(i.ToString());
