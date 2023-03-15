@@ -10,7 +10,7 @@
     var routeFilters = new Dictionary<string, string>
         {
             { "SelectedVillagerName", @Model.SelectedVillagerName },
-            { "ClothingCategory", @Model.ClothingCategory },
+            { "ClothingType", @Model.ClothingType },
             { "Color", @Model.Color },
             { "Style", @Model.Style },
         };
@@ -19,7 +19,7 @@
 <div class="container vstack gap-3">
     <form class="d-flex">
         <div class="p-2 flex-fill">
-            <select class=" form-select form-select-pink" asp-for="ClothingCategory" asp-items="SelectListItemsUtility.Categories">
+            <select class=" form-select form-select-pink" asp-for="ClothingType" asp-items="SelectListItemsUtility.Categories">
                 <option selected value=""> Choose Clothing Type </option>
             </select>
         </div>
@@ -38,12 +38,12 @@
             <div class="dropdown">
                 <button value="@Model.SelectedVillagerName" asp-for="SelectedVillagerName" class="dropdown-toggle form-select form-select-pink w-100" type="button" data-bs-toggle="dropdown">
                     <div id="selectedVillagerDropdownCover">
-                        @if(String.IsNullOrEmpty(@Model.SelectedVillagerName)){
+                        @if(Model.SelectedVillager == null){
                             @("Choose Villager");
                         }
                         else{
-                            <img class="villager-icon-sm" src="@Model.SelectedVillagerIconUrl" >
-                            @Model.SelectedVillagerName
+                            <img class="villager-icon-sm" src="@Model.SelectedVillager.Details.IconUrl" >
+                            @Model.SelectedVillager.Name
                         }
                     </div>
                 </button>
@@ -51,7 +51,7 @@
                         <li class="dropdown-item">
                             <input id="villagerDropdownSearch" onkeyup="villagerSearch()" type="text">
                         </li>
-                        <li id="NoVillagerListItem" onclick="villagerSelect(this.id)" class="dropdown-item villagerListItem @(String.IsNullOrEmpty(Model.SelectedVillagerName) ? "active" : "")" data-value="">
+                        <li id="NoVillagerListItem" onclick="villagerSelect(this.id)" class="dropdown-item villagerListItem @(Model.SelectedVillager == null ? "active" : "")" data-value="">
                             <img class="villager-icon-fit" src="https://dodo.ac/np/images/6/68/Tom_Nook_NH_Character_Icon.png">
                             No Villager
                         </li>
@@ -72,12 +72,12 @@
     <hr/>
     <div class="d-flex justify-content-between">
         <div class="fs-small text-muted">Page @Model.PageIndex of @Model.TotalPages</div>
-        @if(!String.IsNullOrEmpty(Model.SelectedVillagerName)){
+        @if(Model.SelectedVillager != null){
             <div class="fs-small text-muted" >
-                @Model.SelectedVillagerName's
-                <img class="villager-icon-sm" src="@Model.SelectedVillagerIconUrl" >
-                favorite styles are @(String.Join(" and ",@Model.CompareStyles)) 
-                and their favorite colors are @(String.Join(" and ",@Model.CompareColors)) 
+                @Model.SelectedVillager.Name's
+                <img class="villager-icon-sm" src="@Model.SelectedVillager.Details.IconUrl" >
+                favorite styles are @(String.Join(" and ",@Model.SelectedVillager.Details.Styles)) 
+                and their favorite colors are @(String.Join(" and ",@Model.SelectedVillager.Details.Colors)) 
             </div>
         }
         <div class="btn-group">
@@ -101,7 +101,7 @@
                     <img src="@Item.ImageUrl" class="card-img-top">
                     <div class="card-body">
                         <div class="card-title card-title-pink w-100 text-center text-capitalize"> @Item.VariationName @Item.ClothingName </div>
-                        @if(String.IsNullOrEmpty(Model.SelectedVillagerName)){
+                        @if(Model.SelectedVillager == null){
                             <div class="d-flex align-items-center my-2">
                                 <div class="flex-shrink-0">
                                     <i class="bi bi-heart-fill opacity-25 icon-pink"></i>
@@ -115,16 +115,16 @@
                             int rating = 1;
 
                             foreach(string color in Item.Colors){
-                                if(Model.CompareColors.Contains(color))
+                                if(Model.SelectedVillager.Details.Colors.Contains(color))
                                 rating++;
                             }
                             foreach(string style in Item.Styles){
-                                if(Model.CompareStyles.Contains(style))
+                                if(Model.SelectedVillager.Details.Styles.Contains(style))
                                     rating++;
                             }
 
                             <div class="my-2 d-flex justify-content-center gap-1">
-                                <span><img class="villager-icon-sm" src="@Model.SelectedVillagerIconUrl" ></span>
+                                <span><img class="villager-icon-sm" src="@Model.SelectedVillager.Details.IconUrl" ></span>
                                 @for(int i = 1; i <= 5; i++){
                                     int opacity = i <= rating ? 100 : 25;
                                     <i class="bi bi-heart-fill icon-pink opacity-@opacity"></i>

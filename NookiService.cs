@@ -2,8 +2,8 @@ using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 
 public interface INookiService {
-    Task<ClothingItem[]> GetClothing(String? ClothingCategory, String? Color, String? Style);
-    Task<Villager[]> GetVillagers();
+    Task<List<ClothingItem>> GetClothing(String? ClothingCategory, String? Color, String? Style);
+    Task<List<Villager>> GetVillagers();
 }
 public class NookiService : INookiService {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -12,11 +12,11 @@ public class NookiService : INookiService {
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<ClothingItem[]> GetClothing(String? ClothingCategory, String? Color, String? Style){
+    public async Task<List<ClothingItem>> GetClothing(String? ClothingType, String? Color, String? Style){
         Dictionary<string,string?> queries = new Dictionary<string, string?>();
 
-        if(!string.IsNullOrEmpty(ClothingCategory)){
-            queries.Add("category", ClothingCategory);
+        if(!string.IsNullOrEmpty(ClothingType)){
+            queries.Add("category", ClothingType);
         }
         if(!string.IsNullOrEmpty(Color)){
             queries.Add("color", Color);
@@ -37,13 +37,13 @@ public class NookiService : INookiService {
             IEnumerable<ClothingItem> Variations = from item in Clothing
                                         from variation in item.Variations
                                         select new ClothingItem(item.Name, variation.VariationName, variation.Colors, item.Styles, variation.ImageUrl);
-            return Variations.ToArray();                     
+            return Variations.ToList();                     
         }
 
-        return new ClothingItem[0];
+        return new List<ClothingItem>();
     }
 
-    public async Task<Villager[]> GetVillagers(){
+    public async Task<List<Villager>> GetVillagers(){
         HttpClient httpClient = _httpClientFactory.CreateClient("Nookipedia");
         String getVillagers = "/villagers?game=nh&nhdetails=true";
         HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(getVillagers);
@@ -52,9 +52,9 @@ public class NookiService : INookiService {
         {
             Stream contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
             var villagers = await JsonSerializer.DeserializeAsync<IEnumerable<Villager>>(contentStream);
-            return villagers?.ToArray() ?? new Villager[0];
+            return villagers?.ToList() ?? new List<Villager>();
         }
-        return new Villager[0];
+        return new List<Villager>();
 
     }
 
