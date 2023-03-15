@@ -16,25 +16,25 @@
         };
 }
 
-<div class="container vstack gap-3">
+<div class="d-flex flex-column gap-3 h-100 px-4">
     <form class="d-flex">
-        <div class="p-2 flex-fill">
+        <div class="flex-fill p-2">
             <select class=" form-select form-select-pink" asp-for="ClothingType" asp-items="SelectListItemsUtility.Categories">
                 <option selected value=""> Choose Clothing Type </option>
             </select>
         </div>
-        <div class="p-2 flex-fill">
+        <div class="flex-fill p-2">
             <select class="form-select form-select-pink" asp-for="Color" asp-items="SelectListItemsUtility.Colors">
                 <option selected value=""> Choose Color </option>
             </select>
         </div>
-        <div class="p-2 flex-fill">
+        <div class="flex-fill p-2">
             <select class="col-2 form-select form-select-pink" asp-for="Style" asp-items="SelectListItemsUtility.Styles">
                 <option selected value=""> Choose Style </option>
             </select>
         </div>
         <input type="hidden" id="selectedVillagerNameInput" asp-for="SelectedVillagerName" value="@Model.SelectedVillagerName">
-        <div class="p-2 flex-fill">
+        <div class="flex-fill p-2">
             <div class="dropdown">
                 <button value="@Model.SelectedVillagerName" asp-for="SelectedVillagerName" class="dropdown-toggle form-select form-select-pink w-100" type="button" data-bs-toggle="dropdown">
                     <div id="selectedVillagerDropdownCover">
@@ -65,7 +65,7 @@
                 </ul>
             </div>
         </div>
-        <div class="p-2 flex-fill">
+        <div class="flex-fill p-2">
             <input class="btn btn-pink" type="submit" value="Filter" />
         </div>
     </form>
@@ -90,66 +90,73 @@
         </div>
 
     </div>
-    <div class="row gy-4">
-        @{
+    <div class="row gy-4 flex-grow-1">
+        @if(Model.ClothingList.Count > 0){
             int index = 0;
-        }
-        @foreach(ClothingItem Item in @Model.ClothingList){
-            index++;
-            <div class="col-md-3 col-sm-4 col-xs-6">
-                <div class="card card-pink">
-                    <img src="@Item.ImageUrl" class="card-img-top">
-                    <div class="card-body">
-                        <div class="card-title card-title-pink w-100 text-center text-capitalize"> @Item.VariationName @Item.ClothingName </div>
-                        @if(Model.SelectedVillager == null){
-                            <div class="d-flex align-items-center my-2">
-                                <div class="flex-shrink-0">
-                                    <i class="bi bi-heart-fill opacity-25 icon-pink"></i>
+            foreach(ClothingItem Item in @Model.ClothingList){
+                index++;
+                <div class="col-md-3 col-sm-4 col-xs-6">
+                    <div class="card card-pink">
+                        <img src="@Item.ImageUrl" class="card-img-top">
+                        <div class="card-body">
+                            <div class="card-title card-title-pink w-100 text-center text-capitalize rounded-pill"> @Item.VariationName @Item.ClothingName </div>
+                            @if(Model.SelectedVillager == null){
+                                <div class="d-flex align-items-center my-2">
+                                    <div class="flex-shrink-0">
+                                        <i class="bi bi-heart-fill icon-pink-light"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3 text-muted fs-small">
+                                        Select villager to see compatibility rating
+                                    </div>
                                 </div>
-                                <div class="flex-grow-1 ms-3 text-muted fs-small">
-                                    Select villager to see compatibility rating
-                                </div>
-                            </div>
-                        }
-                        else{
-                            int rating = 1;
-
-                            foreach(string color in Item.Colors){
-                                if(Model.SelectedVillager.Details.Colors.Contains(color))
-                                rating++;
                             }
-                            foreach(string style in Item.Styles){
-                                if(Model.SelectedVillager.Details.Styles.Contains(style))
+                            else{
+                                int rating = 1;
+
+                                foreach(string color in Item.Colors){
+                                    if(Model.SelectedVillager.Details.Colors.Contains(color))
                                     rating++;
-                            }
-
-                            <div class="my-2 d-flex justify-content-center gap-1">
-                                <span><img class="villager-icon-sm" src="@Model.SelectedVillager.Details.IconUrl" ></span>
-                                @for(int i = 1; i <= 5; i++){
-                                    int opacity = i <= rating ? 100 : 25;
-                                    <i class="bi bi-heart-fill icon-pink opacity-@opacity"></i>
                                 }
-                            </div>
-                        }
-                        <div class="accordion" id="accord@(index)">
-                              <div class="accordion-item">
-                                    <div class="accordion-header" id="heading@(index)">
-                                        <button class="accordion-button collapsed fs-small" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(index)">
-                                            Details
-                                        </button>
-                                    </div>
-                                    <div id="collapse@(index)" class="accordion-collapse collapse" data-bs-parent="#accord@(index)">
-                                        <div class="accordion-body p-2">
-                                            <div class="fs-small text-muted"><strong>Styles:</strong> @(String.Join(", ",@Item.Styles))</div>
-                                            <div class="fs-small text-muted"><strong>Colors:</strong> @(String.Join(", ", @Item.Colors))</div>
-                                            
+                                foreach(string style in Item.Styles){
+                                    if(Model.SelectedVillager.Details.Styles.Contains(style))
+                                        rating++;
+                                }
+
+                                <div class="d-flex justify-content-center gap-1 my-2">
+                                    <span><img class="villager-icon-sm" src="@Model.SelectedVillager.Details.IconUrl" ></span>
+                                    @for(int i = 1; i <= 5; i++){
+                                        String iconColor = i <= rating ? "icon-pink" : "icon-pink-light";
+                                        <i class="bi bi-heart-fill @iconColor"></i>
+                                    }
+                                </div>
+                            }
+                            <div class="accordion" id="accord@(index)">
+                                <div class="accordion-item">
+                                        <div class="accordion-header" id="heading@(index)">
+                                            <button class="accordion-button collapsed fs-small" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(index)">
+                                                Details
+                                            </button>
                                         </div>
-                                    </div>
+                                        <div id="collapse@(index)" class="accordion-collapse collapse" data-bs-parent="#accord@(index)">
+                                            <div class="accordion-body p-2">
+                                                <div class="fs-small text-muted"><strong>Styles:</strong> @(String.Join(", ",@Item.Styles))</div>
+                                                <div class="fs-small text-muted"><strong>Colors:</strong> @(String.Join(", ", @Item.Colors))</div>
+                                                
+                                            </div>
+                                        </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            }
+        }
+        else{
+            <div class="d-flex flex-column justify-content-center align-items-center no-content-pink rounded-3">
+                <h1><i class="bi bi-emoji-smile-upside-down"></i></h1>
+                <div class=" fs-10">Aww. No clothes match your current filters.</div>
             </div>
+
         }
     </div>
     
